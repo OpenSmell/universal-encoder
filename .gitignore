@@ -1,0 +1,7 @@
+__pycache__
+.vscode
+*.pyc
+models/*
+!models/.gitkeep
+data/*
+!data/.gitkeep
