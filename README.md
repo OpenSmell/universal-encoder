@@ -1,6 +1,6 @@
 # Universal Encoder for Electronic Nose Data
 
-> **Status:** PROVEN for known substances. Mean chemoprint R² = 0.892 on held-out sessions of 44 training substances. NOT PROVEN for novel substances (leave-substance-out R² < 0 — see below).
+> **Status:** PROVEN for known substances. Mean chemoprint R² = 0.882 on held-out sessions of 44 training substances. NOT PROVEN for novel substances (leave-substance-out R² < 0 — see below).
 
 ## What this does
 
@@ -8,7 +8,7 @@ Maps 6-sensor e-nose data (SmellNet, 100 time steps × 6 MOX sensors) to a 256-d
 
 ## What this does NOT do
 
-- **Novel substance identification.** Leave-11-substances-out cross-validation gives mean R² = -7.79 (worse than guessing the mean). The encoder can re-identify substances it saw during training (R² = 0.892) but cannot generalise to unseen substances. The 44-food dataset is too small for genuine chemistry learning.
+- **Novel substance identification.** Leave-11-substances-out cross-validation gives mean R² = -14.62 (worse than guessing the mean). The encoder can re-identify substances it saw during training (R² = 0.882) but cannot generalise to unseen substances. The 44-food dataset is too small for genuine chemistry learning.
 - **Device-invariance.** All data comes from a single sensor board. Cross-device generalisation requires multi-device data and domain-adversarial training — not yet done.
 - **Chirality or vibrational mode prediction.** 29 structural dimensions only. The 6 broad-spectrum MOX sensors cannot distinguish chiral enantiomers or trace compounds below detection limits.
 - **Environmental or industrial samples.** Trained on 44 food substances from the SmellNet + FooDB overlap only.
@@ -17,8 +17,8 @@ Maps 6-sensor e-nose data (SmellNet, 100 time steps × 6 MOX sensors) to a 256-d
 
 | Claim | Result | Honest statement |
 |-------|--------|-----------------|
-| Session invariance | R² = 0.892 | Works when the substance was seen during training |
-| Substance generalisation | R² = -7.79 | Does NOT work. Current architecture memorises substances |
+| Session invariance | R² = 0.882 | Works when the substance was seen during training |
+| Substance generalisation | R² = -14.62 | Does NOT work. Current architecture memorises substances |
 | Device invariance | Not tested | Requires multi-device data |
 
 ## Leave-substance-out cross-validation
@@ -27,12 +27,12 @@ Maps 6-sensor e-nose data (SmellNet, 100 time steps × 6 MOX sensors) to a 256-d
 
 | Fold | Test substances | Mean R² |
 |------|----------------|---------|
-| 1 | apple, asparagus, banana, broccoli, cauliflower, lemon, mandarin_orange, pili_nut, potato, radish, strawberry | -0.87 |
-| 2 | brussel_sprouts, chervil, cinnamon, cloves, coriander, dill, mango, mint, nutmeg, oregano, sweet_potato | -1.81 |
-| 3 | allspice, almond, angelica, avocado, cashew, ginger, mustard, peach, pear, star_anise, tomato | -0.10 |
-| 4 | brazil_nut, cabbage, chives, cumin, garlic, hazelnut, kiwi, mugwort, pineapple, saffron, turnip | -28.39 |
+| 1 | apple, asparagus, banana, broccoli, cauliflower, lemon, mandarin_orange, pili_nut, potato, radish, strawberry | -1.11 |
+| 2 | brussel_sprouts, chervil, cinnamon, cloves, coriander, dill, mango, mint, nutmeg, oregano, sweet_potato | -1.55 |
+| 3 | allspice, almond, angelica, avocado, cashew, ginger, mustard, peach, pear, star_anise, tomato | -0.09 |
+| 4 | brazil_nut, cabbage, chives, cumin, garlic, hazelnut, kiwi, mugwort, pineapple, saffron, turnip | -55.71 |
 
-All folds negative. Fold 4 is particularly bad (cabbage-family and spices), suggesting dataset bias. The encoder memorises substance-specific sensor signatures rather than learning generalisable chemistry.
+All folds negative. Fold 4 is catastrophically bad (cabbage-family and spices, R²=-55.71), suggesting dataset bias amplifies with the wider dynamic range of canonical topological indices (Wiener, Zagreb, eccentricity vs Chi0/Chi1/Kappa1).
 
 ## Why substance generalisation fails
 
@@ -54,7 +54,7 @@ conda activate odor
 python src/train_encoder.py
 ```
 
-Expected: R² = 0.892 ± 0.05 on held-out sessions. If it doesn't reproduce, file an issue.
+Expected: R² = 0.882 ± 0.05 on held-out sessions. If it doesn't reproduce, file an issue.
 
 ```bash
 python src/cv_leave_substance_out.py
@@ -67,7 +67,7 @@ Expected: negative R² across all 4 folds.
 1. Collect 100s–1000s of additional substances for genuine chemistry learning
 2. Multi-device data collection for device-invariance
 3. Replace contrastive loss with chemistry-predictive loss that forces generalisation
-4. Weighted loss on weak chemoprint dimensions (dim 16 R² = 0.43)
+4. Weighted loss on weak chemoprint dimensions (dim 16 R² = 0.44, dim 24 R² = 0.0)
 
 ## Relationship to other repos
 
